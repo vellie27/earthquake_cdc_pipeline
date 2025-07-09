@@ -1,0 +1,41 @@
+# Use an official Python runtime as a parent image
+# We choose a slim-buster image for a smaller footprint
+FROM python:3.13.2-slim-buster
+
+# Set the working directory in the container
+# All subsequent commands will be executed from this directory
+WORKDIR /app
+
+# Copy the requirements.txt file into the container at /app
+# This step is done separately to leverage Docker's layer caching.
+# If only requirements.txt changes, this layer and subsequent ones are rebuilt.
+COPY requirements.txt .
+
+# Install any specified packages from requirements.txt
+# --no-cache-dir: Prevents pip from storing downloaded packages, reducing image size.
+# --upgrade pip: Ensures pip itself is up-to-date.
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of your application code into the container at /app
+# This includes your Python scripts and any other necessary files.
+# The `.` at the end means "copy everything from the current directory on the host to the WORKDIR in the container".
+COPY . .
+
+# Expose the port that the application will run on.
+# If your USGS_API_integration.py script runs a web server (e.g., Flask, FastAPI),
+# you should expose the port it listens on. If it's just a script that runs and exits,
+# this line might not be strictly necessary for functionality, but it's good practice
+# if there's any network interaction.
+# Assuming a common port like 5000 for a web service, adjust if needed.
+EXPOSE 5000
+
+# Define the command to run your application when the container starts.
+# This assumes your main script is USGS_API_integration.py.
+# If it's a different script or a different way to start your app, modify this line.
+CMD ["python", "USGS_API_integration.py"]
+
+# Optional: Add metadata to the image (useful for documentation)
+LABEL maintainer="Your Name/Organization"
+LABEL version="1.0"
+LABEL description="Docker image for Earthquake CDC Pipeline - USGS API Integration"
